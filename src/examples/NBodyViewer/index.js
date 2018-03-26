@@ -16,11 +16,15 @@ const mainCameraName = 'mainCamera';
 
 const spherePosition = new THREE.Vector3(0, 0, 150);
 
+const timeScaleFactor = (5.0 / 1) * 1000; // second / Simulation units scaled to ms
+
 class NBodyViewer extends ExampleBase {
   constructor(props, context) {
     super(props, context);
 
     const r = Date.now() * 0.0005;
+    this.prevTime = Date.now()
+    this.currentTime = 0.0
 
     this.state = {
       ... this.state,
@@ -89,7 +93,15 @@ class NBodyViewer extends ExampleBase {
       return;
     }
 
-    const r = Date.now() * 0.0005;
+    const nowTime = Date.now()
+    const stepTime = nowTime - this.prevTime // in milliseconds
+    this.prevTime = nowTime
+
+
+    this.currentTime += stepTime / timeScaleFactor
+
+    const r = nowTime * 0.0005;
+    console.log(this.currentTime)
 
     this.setState({
       r,
