@@ -13,8 +13,15 @@ import Physics from './Physics/index';
 import PhysicsMousePick from './Physics/mousePick';
 import BenchmarkRotatingCubes from './Benchmark/RotatingCubes';
 import RotatingCubesDirectUpdates from './Benchmark/RotatingCubesDirectUpdates';
+import NBodyViewer from './NBodyViewer';
 
 const examples = [
+  {
+    name: 'NBody',
+    component: NBodyViewer,
+    url: 'NBodyViewer/index',
+    slug: 'nbody',
+  },
   {
     name: 'Simple',
     component: SimpleExample,
