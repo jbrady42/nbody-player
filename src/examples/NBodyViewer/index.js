@@ -8,16 +8,11 @@ import React3 from 'react-three-renderer';
 
 import Info from './Info';
 
-import PointCloud from './PointCloud';
+import {randomCloud, PointCloud}  from './PointCloud';
 
 import TrackballControls from '../../ref/trackball';
 
-const perspectiveCameraName = 'perspectiveCamera';
-const orthographicCameraName = 'orthographicCamera';
 const mainCameraName = 'mainCamera';
-
-const perspectiveCameraRotation = new THREE.Euler(0, Math.PI, 0);
-const orthographicCameraRotation = new THREE.Euler(0, Math.PI, 0);
 
 const spherePosition = new THREE.Vector3(0, 0, 150);
 
@@ -31,9 +26,9 @@ class NBodyViewer extends ExampleBase {
       ... this.state,
       meshPosition: new THREE.Vector3(Math.cos(r), Math.sin(r), Math.sin(r)).multiplyScalar(700),
       childPosition: new THREE.Vector3(70 * Math.cos(2 * r), 150, 70 * Math.sin(r)),
-      activeCameraName: perspectiveCameraName,
       paused: false,
       mainCameraPosition: new THREE.Vector3(0, 0, 2500),
+      pointVerticies: randomCloud()
     };
   }
 
@@ -74,14 +69,14 @@ class NBodyViewer extends ExampleBase {
       default:
         break;
       case 79: // O
-        this.setState({
-          activeCameraName: orthographicCameraName,
-        });
+        // this.setState({
+        //   activeCameraName: orthographicCameraName,
+        // });
         break;
       case 80: // P
-        this.setState({
-          activeCameraName: perspectiveCameraName,
-        });
+        // this.setState({
+        //   activeCameraName: perspectiveCameraName,
+        // });
 
         break;
     }
@@ -130,6 +125,7 @@ class NBodyViewer extends ExampleBase {
       meshPosition,
       childPosition,
       r,
+      pointVerticies
     } = this.state;
 
     const aspectRatio = 0.5 * width / height;
@@ -137,30 +133,24 @@ class NBodyViewer extends ExampleBase {
     return (<div>
       <Info
         pause={this._pause}
-        frame={this._frame}
-      />
+        frame={this._frame} />
+
       <React3
         ref="react3"
         width={width}
         height={height}
         antialias
-        onAnimate={this._onAnimate}
-      >
+        onAnimate={this._onAnimate}>
+
         <viewport
           x={0}
           y={0}
-          width={width / 2}
+          width={width}
           height={height}
-          cameraName={this.state.activeCameraName}
-        />
-        <viewport
-          x={width / 2}
-          y={0}
-          width={width / 2}
-          height={height}
-          cameraName={mainCameraName}
-        />
+          cameraName={mainCameraName}/>
+
         <scene>
+
           <perspectiveCamera
             ref="mainCamera"
             name={mainCameraName}
@@ -168,77 +158,57 @@ class NBodyViewer extends ExampleBase {
             aspect={aspectRatio}
             near={1}
             far={10000}
-            position={this.state.mainCameraPosition}
-          />
+            position={this.state.mainCameraPosition}/>
+
           <object3D
-            lookAt={meshPosition}
-          >
-            <perspectiveCamera
-              name={perspectiveCameraName}
-              fov={35 + 30 * Math.sin(0.5 * r)}
-              aspect={aspectRatio}
-              near={150}
-              far={meshPosition.length()}
-              rotation={perspectiveCameraRotation}
-            />
-            <orthographicCamera
-              name={orthographicCameraName}
-              left={0.5 * width / -2}
-              right={0.5 * width / 2}
-              top={height / 2}
-              bottom={height / -2}
-              near={150}
-              far={meshPosition.length()}
-              rotation={orthographicCameraRotation}
-            />
+            lookAt={meshPosition}>
+
             <mesh
-              position={spherePosition}
-            >
+              position={spherePosition}>
               <sphereGeometry
                 radius={5}
                 widthSegments={16}
-                heightSegments={8}
-              />
+                heightSegments={8}/>
+
               <meshBasicMaterial
                 color={0x0000ff}
-                wireframe
-              />
+                wireframe/>
+
             </mesh>
           </object3D>
-          <cameraHelper
-            cameraName={this.state.activeCameraName}
-          />
+
+
           <object3D
-            position={meshPosition}
-          >
+            position={meshPosition}>
+
             <mesh>
               <sphereGeometry
                 radius={100}
                 widthSegments={16}
-                heightSegments={8}
-              />
+                heightSegments={8}/>
+
               <meshBasicMaterial
                 color={0xffffff}
-                wireframe
-              />
+                wireframe/>
+
             </mesh>
             <mesh
-              position={childPosition}
-            >
+              position={childPosition}>
+
               <sphereGeometry
                 radius={50}
                 widthSegments={16}
-                heightSegments={8}
-              />
+                heightSegments={8}/>
+
               <meshBasicMaterial
                 color={0x00ff00}
-                wireframe
-              />
+                wireframe/>
+
             </mesh>
           </object3D>
-          {
-            <PointCloud/>
-          }
+
+          <PointCloud vertices={pointVerticies}/>
+
         </scene>
       </React3>
     </div>);

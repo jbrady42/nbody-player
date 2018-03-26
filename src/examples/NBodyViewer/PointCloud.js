@@ -1,35 +1,25 @@
 import React from 'react';
 import * as THREE from 'three';
 
-class PointCloud extends React.Component {
-  constructor(props, context) {
-    super(props, context);
+export function randomCloud() {
+  const pointCloudVertices = [];
 
-    this.pointCloudVertices = [];
+  for (let i = 0; i < 10000; i++) {
+    const vertex = new THREE.Vector3();
 
-    for (let i = 0; i < 10000; i++) {
-      const vertex = new THREE.Vector3();
+    vertex.x = THREE.Math.randFloatSpread(2000);
+    vertex.y = THREE.Math.randFloatSpread(2000);
+    vertex.z = THREE.Math.randFloatSpread(2000);
 
-      vertex.x = THREE.Math.randFloatSpread(2000);
-      vertex.y = THREE.Math.randFloatSpread(2000);
-      vertex.z = THREE.Math.randFloatSpread(2000);
-
-      this.pointCloudVertices.push(vertex);
-    }
+    pointCloudVertices.push(vertex);
   }
 
-  shouldComponentUpdate() {
-    return false;
-  }
-
-  render() {
-    return (<points>
-      <geometry vertices={this.pointCloudVertices}/>
-      <pointsMaterial
-        color={0x888888}
-      />
-    </points>);
-  }
+  return pointCloudVertices
 }
 
-export default PointCloud;
+export function PointCloud({vertices}) {
+  return <points>
+    <geometry vertices={vertices}/>
+    <pointsMaterial color={0x888888}/>
+  </points>
+}
