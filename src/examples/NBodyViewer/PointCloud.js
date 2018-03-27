@@ -23,3 +23,20 @@ export function PointCloud({vertices}) {
     <pointsMaterial color={0x888888}/>
   </points>
 }
+
+export function MeshCloud({vertices}) {
+  return vertices.map((v) => {
+    return <object3D>
+      <mesh position={v}>
+        <sphereGeometry
+          radius={5}
+          widthSegments={16}
+          heightSegments={8} />
+
+        <meshBasicMaterial
+          color={0xffffff}
+          wireframe />
+      </mesh>
+    </object3D>
+  })
+}

@@ -8,7 +8,7 @@ import React3 from 'react-three-renderer';
 
 import Info from './Info';
 
-import {randomCloud, PointCloud}  from './PointCloud';
+import {randomCloud, PointCloud, MeshCloud}  from './PointCloud';
 
 import TrackballControls from '../../ref/trackball';
 
@@ -16,7 +16,7 @@ const mainCameraName = 'mainCamera';
 
 const spherePosition = new THREE.Vector3(0, 0, 150);
 
-const timeScaleFactor = (5.0 / 1) * 1000; // second / Simulation units scaled to ms
+const timeScaleFactor = (10.0 / 1) * 1000; // second / Simulation units scaled to ms
 
 class NBodyViewer extends ExampleBase {
   constructor(props, context) {
@@ -29,7 +29,6 @@ class NBodyViewer extends ExampleBase {
     this.state = {
       ... this.state,
       meshPosition: new THREE.Vector3(Math.cos(r), Math.sin(r), Math.sin(r)).multiplyScalar(700),
-      childPosition: new THREE.Vector3(70 * Math.cos(2 * r), 150, 70 * Math.sin(r)),
       paused: false,
       mainCameraPosition: new THREE.Vector3(0, 0, 2500),
       pointVerticies: randomCloud()
@@ -106,7 +105,6 @@ class NBodyViewer extends ExampleBase {
     this.setState({
       r,
       meshPosition: new THREE.Vector3(Math.cos(r), Math.sin(r), Math.sin(r)).multiplyScalar(700),
-      childPosition: new THREE.Vector3(70 * Math.cos(2 * r), 150, 70 * Math.sin(r)),
     });
   };
 
@@ -135,7 +133,6 @@ class NBodyViewer extends ExampleBase {
 
     const {
       meshPosition,
-      childPosition,
       r,
       pointVerticies
     } = this.state;
@@ -172,54 +169,11 @@ class NBodyViewer extends ExampleBase {
             far={10000}
             position={this.state.mainCameraPosition}/>
 
-          <object3D
-            lookAt={meshPosition}>
 
-            <mesh
-              position={spherePosition}>
-              <sphereGeometry
-                radius={5}
-                widthSegments={16}
-                heightSegments={8}/>
-
-              <meshBasicMaterial
-                color={0x0000ff}
-                wireframe/>
-
-            </mesh>
-          </object3D>
+          {MeshCloud({vertices: [meshPosition]})}
 
 
-          <object3D
-            position={meshPosition}>
-
-            <mesh>
-              <sphereGeometry
-                radius={100}
-                widthSegments={16}
-                heightSegments={8}/>
-
-              <meshBasicMaterial
-                color={0xffffff}
-                wireframe/>
-
-            </mesh>
-            <mesh
-              position={childPosition}>
-
-              <sphereGeometry
-                radius={50}
-                widthSegments={16}
-                heightSegments={8}/>
-
-              <meshBasicMaterial
-                color={0x00ff00}
-                wireframe/>
-
-            </mesh>
-          </object3D>
-
-          <PointCloud vertices={pointVerticies}/>
+          {false && <PointCloud vertices={pointVerticies}/>}
 
         </scene>
       </React3>
