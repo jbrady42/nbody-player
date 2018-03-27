@@ -2,44 +2,35 @@ import React from 'react';
 
 import PropTypes from 'prop-types';
 
-class Info extends React.Component {
-  static propTypes = {
-    pause: PropTypes.func.isRequired,
-    frame: PropTypes.func.isRequired,
-  };
-
-  render() {
-    return (<div
-      style={{
-        position: 'absolute',
-        textAlign: 'center',
-        top: 0,
-        width: '100%',
-        padding: 5,
-        color: 'white',
-        zIndex: 100,
-      }}
-    >
-      <a
-        href="http://threejs.org"
-        style={{
-          color: '#0080ff',
-        }}
-      >three.js</a> - cameras<br/>
-      <b
-        style={{
-          color: 'lightgreen',
-        }}
-      >O</b> orthographic &nbsp;
-      <b
-        style={{
-          color: 'lightgreen',
-        }}
-      >P</b> perspective <br/>
-      <button onClick={this.props.pause}>Pause</button>
-      <button onClick={this.props.frame}>Frame</button>
-    </div>);
+function Info({
+  pause,
+  paused,
+  currentTime
+}) {
+  const sty = {
+    position: 'absolute',
+    textAlign: 'center',
+    top: 0,
+    width: '100%',
+    padding: 5,
+    color: 'white',
+    zIndex: 100,
   }
+
+  return <div style={sty}>
+    <button onClick={pause}>{paused ? "Resume" : "Pause"}</button>
+
+    Simulation time:
+
+    <b style={{color: 'lightgreen',}}>
+      {currentTime}
+    </b>
+  </div>
 }
+
+Info.prototype.propTypes = {
+  pause: PropTypes.func.isRequired,
+  frame: PropTypes.func.isRequired,
+};
 
 export default Info;

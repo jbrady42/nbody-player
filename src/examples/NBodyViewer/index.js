@@ -1,41 +1,50 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import * as THREE from 'three';
-import ExampleBase from './../ExampleBase';
-
 import React3 from 'react-three-renderer';
 
+import ExampleBase from './../ExampleBase';
 import Info from './Info';
-
-import {randomCloud, PointCloud, MeshCloud}  from './PointCloud';
-
 import TrackballControls from '../../ref/trackball';
+import {randomCloud, PointCloud, MeshCloud}  from './PointCloud';
+import {getSnapshots} from "./api"
 
 const mainCameraName = 'mainCamera';
 
 const spherePosition = new THREE.Vector3(0, 0, 150);
 
 const timeScaleFactor = (10.0 / 1) * 1000; // second / Simulation units scaled to ms
+const distanceScale = 200
+
+const cameraStart = new THREE.Vector3(0, 0, 1000)
+
 
 class NBodyViewer extends ExampleBase {
   constructor(props, context) {
     super(props, context);
 
-    const r = Date.now() * 0.0005;
     this.prevTime = Date.now()
     this.currentTime = 0.0
 
     this.state = {
       ... this.state,
-      meshPosition: new THREE.Vector3(Math.cos(r), Math.sin(r), Math.sin(r)).multiplyScalar(700),
-      paused: false,
-      mainCameraPosition: new THREE.Vector3(0, 0, 2500),
-      pointVerticies: randomCloud()
+      paused: true,
+      mainCameraPosition: cameraStart,
+      pointVerticies: randomCloud(),
+      offset: 0,
+      pageSize: 10000,
+      snapshots: [],
+      particles: [],
     };
   }
 
   componentDidMount() {
+    this.setControls()
+
+    this.loadData()
+  }
+
+  setControls() {
     document.addEventListener('keydown', this._onKeyDown, false);
 
     const controls = new TrackballControls(this.refs.mainCamera,
@@ -67,6 +76,22 @@ class NBodyViewer extends ExampleBase {
     delete this.controls;
   }
 
+  loadData() {
+    console.log("Load data")
+    const {offset, pageSize} = this.state
+    getSnapshots(offset, pageSize)
+    .then((data) => {
+      this.snapshots = data.Lines
+
+      console.log( data)
+
+      this.setState({
+        paused: false,
+        currentSnapshotInd: 0,
+      })
+    })
+  }
+
   _onKeyDown = (event) => {
     switch (event.keyCode) {
       default:
@@ -85,11 +110,17 @@ class NBodyViewer extends ExampleBase {
     }
   };
 
+
   _onAnimate = () => {
     this.controls.update();
 
-    if (this.state.paused) {
-      return;
+    const {
+      paused,
+      currentSnapshotInd,
+    } = this.state
+
+    if (paused) {
+      return
     }
 
     const nowTime = Date.now()
@@ -97,21 +128,50 @@ class NBodyViewer extends ExampleBase {
     this.prevTime = nowTime
 
 
+
+    if(this.snapshots.length == 0) {
+      return
+    }
+
     this.currentTime += stepTime / timeScaleFactor
 
-    const r = nowTime * 0.0005;
-    console.log(this.currentTime)
+    let currentInd = currentSnapshotInd
+    while(this.snapshots[currentInd].time < this.currentTime) {
+      // console.log(`Current: ${this.currentTime} Snaphost: ${this.snapshots[currentInd].time} `)
+      currentInd ++
+
+      // console.log(`Current: ${currentInd} len: ${this.snapshots.length} `)
+
+      if(currentInd >= this.snapshots.length) {
+        // reset sim
+        console.log("reset")
+        currentInd = 0
+        this.currentTime = 0
+        break
+      }
+    }
+
+    console.log(currentInd)
+
+    const currentSnapshot = this.snapshots[currentInd]
+    const positions = currentSnapshot.bodies.map((b) => {return b.pos})
+    const particles = positions.map((p) => {
+      return new THREE.Vector3(p[0], p[1],p[2]).multiplyScalar(distanceScale)
+    })
 
     this.setState({
-      r,
-      meshPosition: new THREE.Vector3(Math.cos(r), Math.sin(r), Math.sin(r)).multiplyScalar(700),
+      particles,
+      currentSnapshotInd: currentInd
     });
   };
 
   _pause = () => {
+
     this.setState({
       paused: !this.state.paused,
     });
+    this.prevTime = Date.now()
+
   };
 
   _frame = () => {
@@ -132,17 +192,19 @@ class NBodyViewer extends ExampleBase {
     } = this.props;
 
     const {
-      meshPosition,
-      r,
-      pointVerticies
+      particles,
+      paused,
     } = this.state;
+
+
 
     const aspectRatio = 0.5 * width / height;
 
     return (<div>
       <Info
         pause={this._pause}
-        frame={this._frame} />
+        paused={paused}
+        currentTime={this.currentTime} />
 
       <React3
         ref="react3"
@@ -170,10 +232,10 @@ class NBodyViewer extends ExampleBase {
             position={this.state.mainCameraPosition}/>
 
 
-          {MeshCloud({vertices: [meshPosition]})}
+          {MeshCloud({vertices: particles})}
 
 
-          {false && <PointCloud vertices={pointVerticies}/>}
+          {false && <PointCloud vertices={particles}/>}
 
         </scene>
       </React3>

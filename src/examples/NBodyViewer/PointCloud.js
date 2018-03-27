@@ -25,11 +25,11 @@ export function PointCloud({vertices}) {
 }
 
 export function MeshCloud({vertices}) {
-  return vertices.map((v) => {
-    return <object3D>
+  return vertices.map((v, i) => {
+    return <object3D key={i}>
       <mesh position={v}>
         <sphereGeometry
-          radius={5}
+          radius={3}
           widthSegments={16}
           heightSegments={8} />
 
