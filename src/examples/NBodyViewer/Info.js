@@ -5,7 +5,9 @@ import PropTypes from 'prop-types';
 function Info({
   pause,
   paused,
-  currentTime
+  currentTime,
+  directionClick,
+  forward
 }) {
   const sty = {
     position: 'absolute',
@@ -19,6 +21,8 @@ function Info({
 
   return <div style={sty}>
     <button onClick={pause}>{paused ? "Resume" : "Pause"}</button>
+
+    <button onClick={directionClick}>{forward ? "Forward" : "Reverse"}</button>
 
     Simulation time:
 

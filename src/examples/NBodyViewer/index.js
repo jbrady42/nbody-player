@@ -14,7 +14,7 @@ const mainCameraName = 'mainCamera';
 const spherePosition = new THREE.Vector3(0, 0, 150);
 
 const timeScaleFactor = (10.0 / 1) * 1000; // second / Simulation units scaled to ms
-const distanceScale = 200
+const distanceScale = 500
 
 const cameraStart = new THREE.Vector3(0, 0, 1000)
 
@@ -35,6 +35,7 @@ class NBodyViewer extends ExampleBase {
       pageSize: 10000,
       snapshots: [],
       particles: [],
+      direction: 1
     };
   }
 
@@ -100,11 +101,24 @@ class NBodyViewer extends ExampleBase {
     })
   }
 
+  toggleDirection() {
+    const {direction} = this.state
+    this.setState({
+      direction: direction * -1
+    })
+  }
+
   unPause() {
     this.setState({
       paused: false,
     });
     this.prevTime = Date.now()
+  }
+
+  pause() {
+    this.setState({
+      paused: true,
+    });
   }
 
   _onKeyDown = (event) => {
@@ -125,6 +139,16 @@ class NBodyViewer extends ExampleBase {
     }
   };
 
+  reset() {
+    console.log("reset")
+
+    this.pause()
+    this.currentTime = 0
+    this.setState({
+      currentInd: 0
+    })
+  }
+
 
   _onAnimate = () => {
     this.controls.update();
@@ -132,6 +156,7 @@ class NBodyViewer extends ExampleBase {
     const {
       paused,
       currentSnapshotInd,
+      direction
     } = this.state
 
     if (paused) {
@@ -148,21 +173,20 @@ class NBodyViewer extends ExampleBase {
       return
     }
 
-    this.currentTime += stepTime / timeScaleFactor
+    this.currentTime += (stepTime / timeScaleFactor) * direction
 
     let currentInd = currentSnapshotInd
-    while(this.snapshots[currentInd].time < this.currentTime) {
+    const allowedDiff = 0.01
+    while(Math.abs(this.currentTime - this.snapshots[currentInd].time) > allowedDiff) {
       // console.log(`Current: ${this.currentTime} Snaphost: ${this.snapshots[currentInd].time} `)
-      currentInd ++
+      currentInd += direction
 
       // console.log(`Current: ${currentInd} len: ${this.snapshots.length} `)
 
-      if(currentInd >= this.snapshots.length) {
+      if(currentInd >= this.snapshots.length || currentInd < 0) {
         // reset sim
-        console.log("reset")
-        currentInd = 0
-        this.currentTime = 0
-        break
+        this.reset()
+        return
       }
     }
 
@@ -209,6 +233,7 @@ class NBodyViewer extends ExampleBase {
     const {
       particles,
       paused,
+      direction
     } = this.state;
 
 
@@ -219,7 +244,9 @@ class NBodyViewer extends ExampleBase {
       <Info
         pause={this._pause}
         paused={paused}
-        currentTime={this.currentTime} />
+        currentTime={this.currentTime}
+        forward={direction == 1}
+        directionClick={() => this.toggleDirection()} />
 
       <React3
         ref="react3"

@@ -30,7 +30,7 @@ export function MeshCloud({vertices}) {
     return <object3D key={i}>
       <mesh position={v}>
         <sphereGeometry
-          radius={2}
+          radius={3}
           widthSegments={16}
           heightSegments={8} />
 

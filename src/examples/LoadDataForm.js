@@ -28,7 +28,7 @@ class DataForm extends React.Component  {
         File Name:
         <input type="text" defaultValue={defaultFile} ref={(input) => this.input = input} />
       </label>
-      <input type="submit" value="Submit" />
+      <input type="submit" value="Load" />
     </form>
   }
 }
