@@ -38,10 +38,15 @@ class NBodyViewer extends ExampleBase {
     };
   }
 
+  componentWillReceiveProps(next) {
+    const {endpoint, fname} = next
+    this.loadData(endpoint, fname)
+  }
+
   componentDidMount() {
     this.setControls()
 
-    this.loadData()
+    // this.loadData()
   }
 
   setControls() {
@@ -76,20 +81,30 @@ class NBodyViewer extends ExampleBase {
     delete this.controls;
   }
 
-  loadData() {
+  loadData(endpoint, fname) {
     console.log("Load data")
     const {offset, pageSize} = this.state
-    getSnapshots(offset, pageSize)
+    getSnapshots(endpoint, fname, offset, pageSize)
     .then((data) => {
       this.snapshots = data.Lines
 
-      console.log( data)
+      console.log(data)
+
+      this.currentTime = 0
 
       this.setState({
-        paused: false,
         currentSnapshotInd: 0,
       })
+
+      this.unPause()
     })
+  }
+
+  unPause() {
+    this.setState({
+      paused: false,
+    });
+    this.prevTime = Date.now()
   }
 
   _onKeyDown = (event) => {

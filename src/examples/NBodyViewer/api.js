@@ -1,11 +1,9 @@
 import QueryString from "querystring";
 
-const endpoint = "http://localhost:9090/"
-const file = "run_20.out"
 
-export function getSnapshots(offset, count) {
+export function getSnapshots(endpoint, fname, offset, count) {
   const opts = {
-    name: file,
+    name: fname,
     start: offset,
     count
   }

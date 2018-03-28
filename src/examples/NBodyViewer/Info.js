@@ -23,7 +23,7 @@ function Info({
     Simulation time:
 
     <b style={{color: 'lightgreen',}}>
-      {currentTime}
+      {currentTime.toFixed(5)}
     </b>
   </div>
 }

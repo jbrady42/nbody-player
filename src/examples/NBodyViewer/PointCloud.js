@@ -25,16 +25,17 @@ export function PointCloud({vertices}) {
 }
 
 export function MeshCloud({vertices}) {
+  const color = 0x00AA00
   return vertices.map((v, i) => {
     return <object3D key={i}>
       <mesh position={v}>
         <sphereGeometry
-          radius={3}
+          radius={2}
           widthSegments={16}
           heightSegments={8} />
 
         <meshBasicMaterial
-          color={0xffffff}
+          color={color}
           wireframe />
       </mesh>
     </object3D>
