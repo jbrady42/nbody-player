@@ -18,6 +18,10 @@ const distanceScale = 500
 
 const cameraStart = new THREE.Vector3(0, 0, 1000)
 
+function posVec(state) {
+  const {pos} = state
+  return new THREE.Vector3(pos[0], pos[1],pos[2]).multiplyScalar(distanceScale)
+}
 
 class NBodyViewer extends ExampleBase {
   constructor(props, context) {
@@ -35,6 +39,7 @@ class NBodyViewer extends ExampleBase {
       pageSize: 10000,
       snapshots: [],
       particles: [],
+      trails: {},
       direction: 1
     };
   }
@@ -80,6 +85,21 @@ class NBodyViewer extends ExampleBase {
 
     this.controls.dispose();
     delete this.controls;
+  }
+
+  addTrails(frame) {
+    const {trails} = this.state
+
+    frame.bodies.map((s) => {
+      if(!(s.id in trails)) {
+        trails[s.id] = []
+      }
+      trails[s.id].push(posVec(s))
+    })
+    // console.log(trails)
+    this.setState({
+      trails
+    })
   }
 
   loadData(endpoint, fname) {
@@ -192,11 +212,18 @@ class NBodyViewer extends ExampleBase {
 
     console.log(currentInd)
 
+
+
     const currentSnapshot = this.snapshots[currentInd]
-    const positions = currentSnapshot.bodies.map((b) => {return b.pos})
-    const particles = positions.map((p) => {
-      return new THREE.Vector3(p[0], p[1],p[2]).multiplyScalar(distanceScale)
-    })
+
+    this.addTrails(currentSnapshot)
+
+
+    if(currentInd == this.state.currentInd) {
+      return
+    }
+
+    const particles = currentSnapshot.bodies.map((b) => {return posVec(b)})
 
     this.setState({
       particles,
@@ -233,12 +260,21 @@ class NBodyViewer extends ExampleBase {
     const {
       particles,
       paused,
-      direction
+      direction,
+      trails
     } = this.state;
 
 
 
     const aspectRatio = 0.5 * width / height;
+    //
+    // const pTrails = Object.keys(trails).map((k) => {
+    //   console.log(trails[k])
+    //   return <PointCloud key={k} vertices={trails[k]}/>
+    // })
+    // console.log(trails["1"])
+    // console.log(randomCloud())
+    // const pTrails = <PointCloud vertices={trails["1"]}/>
 
     return (<div>
       <Info
@@ -276,8 +312,6 @@ class NBodyViewer extends ExampleBase {
 
           {MeshCloud({vertices: particles})}
 
-
-          {false && <PointCloud vertices={particles}/>}
 
         </scene>
       </React3>
