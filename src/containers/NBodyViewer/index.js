@@ -125,6 +125,7 @@ class NBodyViewer extends DisplayBase {
 
       this.setState({
         currentSnapshotInd: 0,
+        offset: offset + pageSize,
         loading: false
       })
 
@@ -133,6 +134,9 @@ class NBodyViewer extends DisplayBase {
   }
 
   startNextLoad() {
+    if(this.state.loading) {
+      return
+    }
     this.setState({
       loading: true
     }, () => this.loadNextData())
@@ -141,21 +145,17 @@ class NBodyViewer extends DisplayBase {
   loadNextData() {
     console.log("Load next page")
 
-    const {offset, pageSize, fname} = this.state
+    const {offset, pageSize, fname, loading} = this.state
     console.log(`Name : ${fname} Offset: ${offset}`)
-
-    this.setState({
-      loading: true,
-    })
 
     this.client.getSnapshots(fname, offset, pageSize)
     .then(this.onUpdateLoad.bind(this))
+
   }
 
   onUpdateLoad(data) {
-    const {pageSize, offset} = this.state
+    const {pageSize, offset, currentSnapshotInd} = this.state
 
-    this.snapshots = this.snapshots.concat(data.Lines).slice(-maxSnapshots)
     const dataLen = data.Lines.length
 
     console.log(`Loaded ${dataLen} items`)
@@ -167,6 +167,17 @@ class NBodyViewer extends DisplayBase {
       this.outOfSnaps = false
 
       state.offset += pageSize
+      const newLen = this.snapshots.length + dataLen
+
+      if(newLen > maxSnapshots){
+        this.snapshots = this.snapshots.concat(data.Lines).slice(-maxSnapshots)
+        const dif = newLen - maxSnapshots
+        if(dif > 0) {
+          state.currentSnapshotInd = currentSnapshotInd - dif
+        }
+      } else {
+         this.snapshots = this.snapshots.concat(data.Lines)
+      }
 
       // If there is still more data, increase page size to prevent pausing
       if(this.state.paused) {
@@ -282,7 +293,7 @@ class NBodyViewer extends DisplayBase {
         }, () => {
         } )
         if(!this.endOfData && !loading) {
-          this.loadNextData()
+          this.startNextLoad()
         }
         return
       }
@@ -290,9 +301,9 @@ class NBodyViewer extends DisplayBase {
 
 
     // console.log(`Current Ind after: ${currentInd}`)
-
-    if(snapLen-currentInd < pageSize/2 && !loading) {
-      this.loadNextData()
+    const maxLoad = maxSnapshots - (2*maxSnapshots/3)
+    if((currentInd > maxLoad || snapLen < maxSnapshots) && !loading) {
+      this.startNextLoad()
     }
 
 
