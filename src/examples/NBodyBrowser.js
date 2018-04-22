@@ -2,7 +2,6 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import Viewer from './Viewer';
 
-import SimpleExample from './Simple/index';
 import NBodyViewer from './NBodyViewer';
 import LoadDataForm from './LoadDataForm';
 
