@@ -9,7 +9,7 @@ import {
 import Perf from 'react-addons-perf';
 import createHashHistory from 'history/createHashHistory';
 
-import NBodyBrowser from './examples/NBodyBrowser';
+import NBodyBrowser from './containers/NBodyBrowser';
 
 const customHistory = createHashHistory();
 window.Perf = Perf;

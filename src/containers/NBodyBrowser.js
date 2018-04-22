@@ -1,18 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import Viewer from './Viewer';
 
-import NBodyViewer from './NBodyViewer';
-import LoadDataForm from './LoadDataForm';
-
-const examples = [
-  {
-    name: 'NBody',
-    component: NBodyViewer,
-    url: 'NBodyViewer/index',
-    slug: 'nbody',
-  }
-];
+import Viewer from './NBodyViewer/Viewer';
+import LoadDataForm from '../components/LoadDataForm';
 
 const defaultEndpoint ="http://localhost:9090/"
 const defaultFile = "run_20.out.xz"
@@ -36,7 +26,6 @@ class ExampleBrowser extends React.Component {
 
   render() {
     const { params } = this.props.match;
-    const activeExample = params.slug && examples.find(example => example.slug === params.slug);
 
     const {
       endpoint,

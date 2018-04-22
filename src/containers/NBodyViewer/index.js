@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import * as THREE from 'three';
 import React3 from 'react-three-renderer';
 
-import ExampleBase from './../ExampleBase';
-import Info from './Info';
+import DisplayBase from '../../DisplayBase';
+import Info from '../../components/Info';
+import Spheres from '../../components/Spheres';
 import TrackballControls from '../../ref/trackball';
-import {randomCloud, PointCloud, MeshCloud}  from './PointCloud';
-import ApiClient from "./api"
+import {randomCloud, PointCloud}  from '../../components/PointCloud';
+import ApiClient from "./../../api"
 
 const mainCameraName = 'mainCamera';
 
@@ -25,7 +26,7 @@ function posVec(state) {
   return new THREE.Vector3(pos[0], pos[1],pos[2]).multiplyScalar(distanceScale)
 }
 
-class NBodyViewer extends ExampleBase {
+class NBodyViewer extends DisplayBase {
   constructor(props, context) {
     super(props, context);
 
@@ -391,7 +392,7 @@ class NBodyViewer extends ExampleBase {
             position={this.state.mainCameraPosition}/>
 
 
-          {MeshCloud({vertices: particles})}
+          {Spheres({vertices: particles})}
 
 
         </scene>

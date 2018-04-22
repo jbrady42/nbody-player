@@ -1,7 +1,7 @@
 import React from 'react';
 import sizeMe from 'react-sizeme';
 
-import NBodyViewer from './NBodyViewer';
+import NBodyViewer from './';
 
 function splitSize({size, ...rest}) {
   return <div id="viewer">
