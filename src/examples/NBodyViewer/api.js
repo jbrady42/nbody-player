@@ -1,27 +1,32 @@
 import QueryString from "querystring";
 
-
-export function getSnapshots(endpoint, fname, offset, count) {
-  const opts = {
-    name: fname,
-    start: offset,
-    count
+export default class ApiCLient {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl;
   }
 
-  const qs = `?${QueryString.stringify(opts)}`
+  getSnapshots(fname, offset, count) {
+    const opts = {
+      name: fname,
+      start: offset,
+      count
+    }
 
-  const handleErrors = (response) => {
-  if (!response.ok) {
-    const err = new  Error(response.statusText);
-    err.response = response
-    throw err;
+    const qs = `?${QueryString.stringify(opts)}`
+
+    const handleErrors = (response) => {
+      if (!response.ok) {
+        const err = new  Error(response.statusText);
+        err.response = response
+        throw err;
+      }
+      return response;
+    }
+
+    return fetch(this.baseUrl + qs)
+    .then(handleErrors)
+    .then((resp) => {
+      return resp.json()
+    })
   }
-  return response;
-}
-
-  return fetch(endpoint + qs)
-  .then(handleErrors)
-  .then((resp) => {
-    return resp.json()
-  })
 }

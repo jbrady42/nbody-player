@@ -7,7 +7,7 @@ import ExampleBase from './../ExampleBase';
 import Info from './Info';
 import TrackballControls from '../../ref/trackball';
 import {randomCloud, PointCloud, MeshCloud}  from './PointCloud';
-import {getSnapshots} from "./api"
+import ApiClient from "./api"
 
 const mainCameraName = 'mainCamera';
 
@@ -15,6 +15,8 @@ const spherePosition = new THREE.Vector3(0, 0, 150);
 
 const timeScaleFactor = (10.0 / 1) * 1000; // second / Simulation units scaled to ms
 const distanceScale = 500
+
+const maxSnapshots = 200
 
 const cameraStart = new THREE.Vector3(0, 0, 1000)
 
@@ -36,7 +38,7 @@ class NBodyViewer extends ExampleBase {
       mainCameraPosition: cameraStart,
       pointVerticies: randomCloud(),
       offset: 0,
-      pageSize: 10000,
+      pageSize: 50,
       snapshots: [],
       particles: [],
       trails: {},
@@ -46,6 +48,9 @@ class NBodyViewer extends ExampleBase {
 
   componentWillReceiveProps(next) {
     const {endpoint, fname} = next
+    this.setState({
+      fname
+    })
     this.loadData(endpoint, fname)
   }
 
@@ -103,22 +108,79 @@ class NBodyViewer extends ExampleBase {
   }
 
   loadData(endpoint, fname) {
-    console.log("Load data")
     const {offset, pageSize} = this.state
-    getSnapshots(endpoint, fname, offset, pageSize)
+    this.client = new ApiClient(endpoint)
+
+    console.log("Load data")
+
+    this.client.getSnapshots(fname, offset, pageSize)
     .then((data) => {
       this.snapshots = data.Lines
 
-      console.log(data)
+      console.log(`Loaded ${data.Lines.length} items`)
 
       this.currentTime = 0
+      this.endOfData = false
 
       this.setState({
         currentSnapshotInd: 0,
+        loading: false
       })
 
       this.unPause()
     })
+  }
+
+  startNextLoad() {
+    this.setState({
+      loading: true
+    }, () => this.loadNextData())
+  }
+
+  loadNextData() {
+    console.log("Load next page")
+
+    const {offset, pageSize, fname} = this.state
+    console.log(`Name : ${fname} Offset: ${offset}`)
+
+    this.setState({
+      loading: true,
+    })
+
+    this.client.getSnapshots(fname, offset, pageSize)
+    .then(this.onUpdateLoad.bind(this))
+  }
+
+  onUpdateLoad(data) {
+    const {pageSize, offset} = this.state
+
+    this.snapshots = this.snapshots.concat(data.Lines).slice(-maxSnapshots)
+    const dataLen = data.Lines.length
+
+    console.log(`Loaded ${dataLen} items`)
+
+    // this.currentTime = 0
+
+    let state = {loading: false, offset}
+    if(dataLen > 0) {
+      this.outOfSnaps = false
+
+      state.offset += pageSize
+
+      // If there is still more data, increase page size to prevent pausing
+      if(this.state.paused) {
+        state.pageSize = Math.round(pageSize * 1.5)
+        // this.unPause()
+      }
+    } else {
+      this.endOfData = true
+    }
+
+    this.setState(state, function() {
+      if(this.state.paused) {
+        this.unPause()
+      }
+    }.bind(this))
   }
 
   toggleDirection() {
@@ -135,10 +197,10 @@ class NBodyViewer extends ExampleBase {
     this.prevTime = Date.now()
   }
 
-  pause() {
+  pause(f=null) {
     this.setState({
       paused: true,
-    });
+    }, f);
   }
 
   _onKeyDown = (event) => {
@@ -176,26 +238,33 @@ class NBodyViewer extends ExampleBase {
     const {
       paused,
       currentSnapshotInd,
-      direction
+      direction,
+      loading,
+      pageSize
     } = this.state
 
+
     if (paused) {
+      return
+    }
+
+
+    const snapLen = this.snapshots.length
+    // console.log(`Snap Len: ${snapLen}`)
+
+
+    if(snapLen == 0) {
       return
     }
 
     const nowTime = Date.now()
     const stepTime = nowTime - this.prevTime // in milliseconds
     this.prevTime = nowTime
-
-
-
-    if(this.snapshots.length == 0) {
-      return
-    }
-
     this.currentTime += (stepTime / timeScaleFactor) * direction
 
     let currentInd = currentSnapshotInd
+    // console.log(`Current Ind before: ${currentInd}`)
+
     const allowedDiff = 0.01
     while(Math.abs(this.currentTime - this.snapshots[currentInd].time) > allowedDiff) {
       // console.log(`Current: ${this.currentTime} Snaphost: ${this.snapshots[currentInd].time} `)
@@ -203,15 +272,27 @@ class NBodyViewer extends ExampleBase {
 
       // console.log(`Current: ${currentInd} len: ${this.snapshots.length} `)
 
-      if(currentInd >= this.snapshots.length || currentInd < 0) {
+      if(currentInd >= snapLen || currentInd < 0) {
         // reset sim
-        this.reset()
+        console.log("Out of data")
+        this.outOfSnaps = true
+        this.setState({
+          paused: true
+        }, () => {
+        } )
+        if(!this.endOfData && !loading) {
+          this.loadNextData()
+        }
         return
       }
     }
 
-    console.log(currentInd)
 
+    // console.log(`Current Ind after: ${currentInd}`)
+
+    if(snapLen-currentInd < pageSize/2 && !loading) {
+      this.loadNextData()
+    }
 
 
     const currentSnapshot = this.snapshots[currentInd]

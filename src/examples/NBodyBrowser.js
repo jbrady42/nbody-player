@@ -15,7 +15,7 @@ const examples = [
   }
 ];
 
-const defaultEndpoint = "http://192.168.1.154:9090/"
+const defaultEndpoint ="http://localhost:9090/"
 const defaultFile = "run_20.out.xz"
 
 class ExampleBrowser extends React.Component {
