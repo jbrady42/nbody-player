@@ -134,7 +134,7 @@ class NBodyViewer extends DisplayBase {
   }
 
   startNextLoad() {
-    if(this.state.loading) {
+    if(this.state.loading || this.endOfData) {
       return
     }
     this.setState({
@@ -181,7 +181,7 @@ class NBodyViewer extends DisplayBase {
 
       // If there is still more data, increase page size to prevent pausing
       if(this.state.paused) {
-        state.pageSize = Math.round(pageSize * 1.5)
+        // state.pageSize = Math.round(pageSize * 1.5)
         // this.unPause()
       }
     } else {
@@ -255,6 +255,8 @@ class NBodyViewer extends DisplayBase {
       pageSize
     } = this.state
 
+    const {endOfData} = this
+
 
     if (paused) {
       return
@@ -272,7 +274,13 @@ class NBodyViewer extends DisplayBase {
     const nowTime = Date.now()
     const stepTime = nowTime - this.prevTime // in milliseconds
     this.prevTime = nowTime
-    this.currentTime += (stepTime / timeScaleFactor) * direction
+
+    const debug = false
+    if(debug) {
+      this.currentTime += 0.001
+    } else {
+      this.currentTime += (stepTime / timeScaleFactor) * direction
+    }
 
     let currentInd = currentSnapshotInd
     // console.log(`Current Ind before: ${currentInd}`)
@@ -292,7 +300,7 @@ class NBodyViewer extends DisplayBase {
           paused: true
         }, () => {
         } )
-        if(!this.endOfData && !loading) {
+        if(!endOfData && !loading) {
           this.startNextLoad()
         }
         return
@@ -302,7 +310,7 @@ class NBodyViewer extends DisplayBase {
 
     // console.log(`Current Ind after: ${currentInd}`)
     const maxLoad = maxSnapshots - (2*maxSnapshots/3)
-    if((currentInd > maxLoad || snapLen < maxSnapshots) && !loading) {
+    if((currentInd > maxLoad || snapLen < maxSnapshots) && !loading && !endOfData) {
       this.startNextLoad()
     }
 
