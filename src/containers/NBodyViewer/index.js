@@ -133,7 +133,10 @@ class NBodyViewer extends DisplayBase {
     })
   }
 
-
+  resetCurrent() {
+    const {fname} = this.state
+    this.loadInitData(this.client.baseUrl, fname)
+  }
 
   loadInitData(endpoint, fname) {
     this.setState({
@@ -394,7 +397,8 @@ class NBodyViewer extends DisplayBase {
         paused={paused}
         currentTime={this.currentTime}
         forward={direction == 1}
-        directionClick={() => this.toggleDirection()} />
+        directionClick={() => this.toggleDirection()}
+        resetClick={() => this.resetCurrent()} />
 
       <React3
         ref="react3"

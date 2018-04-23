@@ -7,6 +7,7 @@ function Info({
   paused,
   currentTime,
   directionClick,
+  resetClick,
   forward
 }) {
   const sty = {
@@ -20,6 +21,8 @@ function Info({
   }
 
   return <div style={sty}>
+    {paused &&<button onClick={resetClick}>Reset</button>}
+
     <button onClick={pause}>{paused ? "Resume" : "Pause"}</button>
 
     <button onClick={directionClick}>{forward ? "Forward" : "Reverse"}</button>
