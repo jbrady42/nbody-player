@@ -21,6 +21,16 @@ const maxSnapshots = 200
 
 const cameraStart = new THREE.Vector3(0, 0, 1000)
 
+const initState = {
+  paused: true,
+  offset: 0,
+  pageSize: 50,
+  snapshots: [],
+  particles: [],
+  trails: {},
+  direction: 1
+}
+
 function posVec(state) {
   const {pos} = state
   return new THREE.Vector3(pos[0], pos[1],pos[2]).multiplyScalar(distanceScale)
@@ -35,30 +45,21 @@ class NBodyViewer extends DisplayBase {
 
     this.state = {
       ... this.state,
-      paused: true,
       mainCameraPosition: cameraStart,
       pointVerticies: randomCloud(),
-      offset: 0,
-      pageSize: 50,
-      snapshots: [],
-      particles: [],
-      trails: {},
-      direction: 1
+      ...initState
     };
   }
 
   componentWillReceiveProps(next) {
     const {endpoint, fname} = next
-    this.setState({
-      fname
-    })
-    this.loadData(endpoint, fname)
+    if(fname != this.state.fname) {
+      this.loadInitData(endpoint, fname)
+    }
   }
 
   componentDidMount() {
     this.setControls()
-
-    // this.loadData()
   }
 
   setControls() {
@@ -131,6 +132,13 @@ class NBodyViewer extends DisplayBase {
 
       this.unPause()
     })
+  }
+
+  loadInitData(endpoint, fname) {
+    this.setState({
+      ...initState,
+      fname
+    }, () => this.loadData(endpoint, fname))
   }
 
   startNextLoad() {
