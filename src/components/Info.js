@@ -8,7 +8,8 @@ function Info({
   currentTime,
   directionClick,
   resetClick,
-  forward
+  forward,
+  onTimeUpdate
 }) {
   const sty = {
     position: 'absolute',
@@ -27,6 +28,7 @@ function Info({
 
     <button onClick={directionClick}>{forward ? "Forward" : "Reverse"}</button>
 
+    <input type="range" min="1" max="100" onChange={(e) => onTimeUpdate(e.target.value)}/>
     Simulation time:
 
     <b style={{color: 'lightgreen',}}>

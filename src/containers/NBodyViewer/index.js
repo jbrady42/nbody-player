@@ -9,8 +9,9 @@ import Spheres from '../../components/Spheres';
 import TrackballControls from '../../ref/trackball';
 import {randomCloud, PointCloud}  from '../../components/PointCloud';
 import ApiClient from "./../../api"
+import OC from 'three-orbit-controls'
+const OrbitControls = OC(THREE)
 
-const timeScaleFactor = (10.0 / 1) * 1000; // second / Simulation units scaled to ms
 const distanceScale = 500
 
 const maxSnapshots = 200
@@ -38,6 +39,7 @@ class NBodyViewer extends DisplayBase {
 
     this.prevTime = Date.now()
     this.currentTime = 0.0
+    this.setTimeSpeed(50.0)
 
     this.state = {
       ... this.state,
@@ -59,10 +61,17 @@ class NBodyViewer extends DisplayBase {
     this.setControls()
   }
 
+  setTimeSpeed = (percent) => {
+    const range = 20
+    const sec = range * (100 - percent) / 100
+    this.timeScaleFactor = (sec / 1) * 1000; // second / Simulation units scaled to ms
+    console.log(this.timeScaleFactor)
+  }
+
   setControls() {
     document.addEventListener('keydown', this._onKeyDown, false);
 
-    const controls = new TrackballControls(this.refs.camera);
+    const controls = new OrbitControls(this.refs.camera, this.react3);
 
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
@@ -267,7 +276,10 @@ class NBodyViewer extends DisplayBase {
       pageSize
     } = this.state
 
-    const {endOfData} = this
+    const {
+      endOfData,
+      timeScaleFactor
+    } = this
 
 
     if (paused) {
@@ -364,6 +376,10 @@ class NBodyViewer extends DisplayBase {
     });
   };
 
+  _react3Ref = (react3) => {
+    this.react3 = react3  ;
+  };
+
   render() {
     const {
       width,
@@ -398,9 +414,11 @@ class NBodyViewer extends DisplayBase {
         currentTime={this.currentTime}
         forward={direction == 1}
         directionClick={() => this.toggleDirection()}
-        resetClick={() => this.resetCurrent()} />
+        resetClick={() => this.resetCurrent()}
+        onTimeUpdate={this.setTimeSpeed}/>
 
       <React3
+        canvasRef={this._react3Ref}
         ref="react3"
         width={width}
         height={height}
