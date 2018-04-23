@@ -10,10 +10,6 @@ import TrackballControls from '../../ref/trackball';
 import {randomCloud, PointCloud}  from '../../components/PointCloud';
 import ApiClient from "./../../api"
 
-const mainCameraName = 'mainCamera';
-
-const spherePosition = new THREE.Vector3(0, 0, 150);
-
 const timeScaleFactor = (10.0 / 1) * 1000; // second / Simulation units scaled to ms
 const distanceScale = 500
 
@@ -45,7 +41,8 @@ class NBodyViewer extends DisplayBase {
 
     this.state = {
       ... this.state,
-      mainCameraPosition: cameraStart,
+      cameraPosition: cameraStart,
+      cameraRotation: new THREE.Euler(),
       pointVerticies: randomCloud(),
       ...initState
     };
@@ -65,8 +62,7 @@ class NBodyViewer extends DisplayBase {
   setControls() {
     document.addEventListener('keydown', this._onKeyDown, false);
 
-    const controls = new TrackballControls(this.refs.mainCamera,
-      ReactDOM.findDOMNode(this.refs.react3));
+    const controls = new TrackballControls(this.refs.camera);
 
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
@@ -78,14 +74,17 @@ class NBodyViewer extends DisplayBase {
     controls.staticMoving = true;
     controls.dynamicDampingFactor = 0.3;
 
-    controls.addEventListener('change', () => {
-      this.setState({
-        mainCameraPosition: this.refs.mainCamera.position,
-      });
-    });
+    controls.addEventListener('change', () => this._onTrackballChange());
 
     this.controls = controls;
   }
+
+  _onTrackballChange = () => {
+    this.setState({
+      cameraPosition: this.refs.camera.position.clone(),
+      cameraRotation: this.refs.camera.rotation.clone(),
+    });
+  };
 
   componentWillUnmount() {
     document.removeEventListener('keydown', this._onKeyDown, false);
@@ -133,6 +132,8 @@ class NBodyViewer extends DisplayBase {
       this.unPause()
     })
   }
+
+
 
   loadInitData(endpoint, fname) {
     this.setState({
@@ -370,7 +371,9 @@ class NBodyViewer extends DisplayBase {
       particles,
       paused,
       direction,
-      trails
+      trails,
+      cameraPosition,
+      cameraRotation,
     } = this.state;
 
 
@@ -405,18 +408,19 @@ class NBodyViewer extends DisplayBase {
           y={0}
           width={width}
           height={height}
-          cameraName={mainCameraName}/>
+          cameraName="mainCamera"/>
 
         <scene>
 
           <perspectiveCamera
-            ref="mainCamera"
-            name={mainCameraName}
+            ref="camera"
+            name="mainCamera"
             fov={50}
             aspect={aspectRatio}
             near={1}
             far={10000}
-            position={this.state.mainCameraPosition}/>
+            position={cameraPosition}
+            rotation={cameraRotation} />
 
 
           {Spheres({vertices: particles})}
