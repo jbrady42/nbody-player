@@ -4,8 +4,8 @@ import { NavLink } from 'react-router-dom';
 import Viewer from './NBodyViewer/Viewer';
 import LoadDataForm from '../components/LoadDataForm';
 
-const defaultEndpoint ="http://localhost:1020/"
-const defaultFile = "run_20.out.xz"
+const defaultEndpoint ="/data"
+const defaultFile = "run_100.out.xz"
 
 class ExampleBrowser extends React.Component {
   constructor(props, context) {
