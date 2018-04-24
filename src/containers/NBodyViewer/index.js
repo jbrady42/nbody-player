@@ -6,7 +6,6 @@ import React3 from 'react-three-renderer';
 import DisplayBase from '../../DisplayBase';
 import Info from '../../components/Info';
 import Spheres from '../../components/Spheres';
-import TrackballControls from '../../ref/trackball';
 import {randomCloud, PointCloud}  from '../../components/PointCloud';
 import ApiClient from "./../../api"
 import OC from 'three-orbit-controls'
@@ -134,7 +133,7 @@ class NBodyViewer extends DisplayBase {
 
       this.setState({
         currentSnapshotInd: 0,
-        offset: offset + pageSize,
+        offset: 0,//offset + pageSize,
         loading: false
       })
 
@@ -155,11 +154,14 @@ class NBodyViewer extends DisplayBase {
   }
 
   startNextLoad() {
+    const {offset, pageSize, direction} = this.state
     if(this.state.loading || this.endOfData) {
       return
     }
+    const newOff = offset + (direction * pageSize)
     this.setState({
-      loading: true
+      loading: true,
+      offset: newOff
     }, () => this.loadNextData())
   }
 
@@ -175,7 +177,7 @@ class NBodyViewer extends DisplayBase {
   }
 
   onUpdateLoad(data) {
-    const {pageSize, offset, currentSnapshotInd} = this.state
+    const {pageSize, offset, currentSnapshotInd, direction} = this.state
 
     const dataLen = data.Lines.length
 
@@ -187,22 +189,27 @@ class NBodyViewer extends DisplayBase {
     if(dataLen > 0) {
       this.outOfSnaps = false
 
-      state.offset += pageSize
+      // state.offset += pageSize
       const newLen = this.snapshots.length + dataLen
 
-      if(newLen > maxSnapshots){
-        this.snapshots = this.snapshots.concat(data.Lines).slice(-maxSnapshots)
-        const dif = newLen - maxSnapshots
-        if(dif > 0) {
-          state.currentSnapshotInd = currentSnapshotInd - dif
+      if(direction > 0) {
+        if(newLen > maxSnapshots){
+          this.snapshots = this.snapshots.concat(data.Lines).slice(-maxSnapshots)
+          const dif = newLen - maxSnapshots
+          if(dif > 0) {
+            state.currentSnapshotInd = currentSnapshotInd - dif
+          }
+        } else {
+          this.snapshots = this.snapshots.concat(data.Lines)
         }
       } else {
-         this.snapshots = this.snapshots.concat(data.Lines)
+        this.snapshots = data.Lines.concat(this.snapshots).slice(0, maxSnapshots)
+        state.currentSnapshotInd = currentSnapshotInd + dataLen
       }
 
       // If there is still more data, increase page size to prevent pausing
       if(this.state.paused) {
-        // state.pageSize = Math.round(pageSize * 1.5)
+        state.pageSize = Math.round(pageSize * 1.5)
         // this.unPause()
       }
     } else {
@@ -299,9 +306,9 @@ class NBodyViewer extends DisplayBase {
     const stepTime = nowTime - this.prevTime // in milliseconds
     this.prevTime = nowTime
 
-    const debug = false
+    const debug = true
     if(debug) {
-      this.currentTime += 0.001
+      this.currentTime += 0.001 * direction
     } else {
       this.currentTime += (stepTime / timeScaleFactor) * direction
     }
@@ -333,8 +340,9 @@ class NBodyViewer extends DisplayBase {
 
 
     // console.log(`Current Ind after: ${currentInd}`)
-    const maxLoad = maxSnapshots - (2*maxSnapshots/3)
-    if((currentInd > maxLoad || snapLen < maxSnapshots) && !loading && !endOfData) {
+    const maxLoad = (2*maxSnapshots/3)
+    const needLoading = (direction > 0 && currentInd > maxLoad) || (direction < 0 && currentInd < maxSnapshots - maxLoad)
+    if((needLoading || snapLen < maxSnapshots) && !loading && !endOfData) {
       this.startNextLoad()
     }
 
@@ -437,10 +445,10 @@ class NBodyViewer extends DisplayBase {
           <perspectiveCamera
             ref="camera"
             name="mainCamera"
-            fov={50}
+            fov={100}
             aspect={aspectRatio}
             near={1}
-            far={10000}
+            far={100000}
             position={cameraPosition}
             rotation={cameraRotation} />
 
