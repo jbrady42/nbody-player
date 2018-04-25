@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # Templates
-ep /etc/nginx/sites-available/default
+ep /etc/nginx/conf.d/default.conf
 
 exec nginx

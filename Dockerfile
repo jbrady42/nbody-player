@@ -9,12 +9,11 @@ COPY .  /app
 RUN npm run build
 
 
-FROM ubuntu:16.04
+FROM nginx:mainline
 
 RUN apt update && \
     apt install -y \
-    curl \
-    nginx
+    curl
 
 RUN curl -sLo /usr/bin/ep \
     https://github.com/kreuzwerker/envplate/releases/download/1.0.0-RC1/ep-linux && \
@@ -25,7 +24,7 @@ RUN mkdir /app
 COPY --from=0 /app/pages/ /app/
 
 COPY conf/nginx.conf /etc/nginx/
-COPY conf/default.conf /etc/nginx/sites-available/default
+COPY conf/default.conf /etc/nginx/conf.d/default.conf
 COPY conf/start.sh /usr/bin/
 
 # CMD [ "/usr/bin/ep", "-v", "/etc/nginx/sites-available/default", "--", "/usr/sbin/nginx"]

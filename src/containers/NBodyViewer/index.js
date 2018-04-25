@@ -306,7 +306,7 @@ class NBodyViewer extends DisplayBase {
     const stepTime = nowTime - this.prevTime // in milliseconds
     this.prevTime = nowTime
 
-    const debug = true
+    const debug = false
     if(debug) {
       this.currentTime += 0.001 * direction
     } else {
