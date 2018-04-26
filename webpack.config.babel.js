@@ -29,7 +29,7 @@ const babelLoaderConfigShared = {
 export default {
   entry: {
     app: [
-      './src/index.jsx',
+      './src/index.js',
     ],
   },
   output: {
