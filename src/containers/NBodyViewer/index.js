@@ -28,7 +28,8 @@ const initState = {
   snapshots: [],
   particles: [],
   trails: {},
-  direction: 1
+  direction: 1,
+  dtValue: 60
 }
 
 function posVec(state) {
@@ -42,7 +43,7 @@ class NBodyViewer extends DisplayBase {
 
     this.prevTime = Date.now()
     this.currentTime = 0.0
-    this.setTimeSpeed(50.0)
+    this.setTimeSpeed(initState.dtValue)
 
     this.state = {
       ... this.state,
@@ -65,8 +66,8 @@ class NBodyViewer extends DisplayBase {
   }
 
   setTimeSpeed = (percent) => {
-    const range = 20
-    const sec = range * (100 - percent) / 100
+    const range = 30
+    const sec = range * (100 - percent) / 100.0 + 1
     this.timeScaleFactor = (sec / 1) * 1000; // second / Simulation units scaled to ms
     console.log(this.timeScaleFactor)
   }
@@ -397,6 +398,11 @@ class NBodyViewer extends DisplayBase {
     });
   };
 
+  onTimeSpeedUpdate = (percent) => {
+    this.setTimeSpeed(percent)
+    this.setState({dtValue: percent})
+  }
+
   _pause = () => {
 
     this.setState({
@@ -434,6 +440,7 @@ class NBodyViewer extends DisplayBase {
       trails,
       cameraPosition,
       cameraRotation,
+      dtValue
     } = this.state;
 
 
@@ -456,7 +463,8 @@ class NBodyViewer extends DisplayBase {
         forward={direction == 1}
         directionClick={this.toggleDirection.bind(this)}
         resetClick={this.resetCurrent.bind(this)}
-        onTimeUpdate={this.setTimeSpeed}/>
+        onTimeUpdate={this.onTimeSpeedUpdate.bind(this)}
+        dtValue={dtValue}/>
 
       <React3
         canvasRef={this._react3Ref}
