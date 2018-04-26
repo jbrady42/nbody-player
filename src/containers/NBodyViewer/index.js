@@ -150,6 +150,7 @@ class NBodyViewer extends DisplayBase {
 
   resetCurrent() {
     const {fname} = this.state
+    this.setTimeSpeed(initState.dtValue)
     this.loadInitData(this.client.baseUrl, fname)
   }
 
@@ -295,17 +296,6 @@ class NBodyViewer extends DisplayBase {
         break;
     }
   };
-
-  reset() {
-    console.log("reset")
-
-    this.pause()
-    this.currentTime = 0
-    this.setState({
-      currentInd: 0
-    })
-  }
-
 
   _onAnimate = () => {
     this.controls.update();
