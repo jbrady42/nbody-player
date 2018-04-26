@@ -17,9 +17,13 @@ const maxSnapshots = 200
 
 const cameraStart = new THREE.Vector3(0, 0, 1000)
 
+const debug = false
+
 const initState = {
   paused: true,
   offset: 0,
+  dstart: 0,
+  dend: 0,
   pageSize: 50,
   snapshots: [],
   particles: [],
@@ -133,7 +137,9 @@ class NBodyViewer extends DisplayBase {
 
       this.setState({
         currentSnapshotInd: 0,
-        offset: 0,//offset + pageSize,
+        offset: 0,
+        dstart: offset,
+        dend: offset + pageSize,
         loading: false
       })
 
@@ -154,50 +160,75 @@ class NBodyViewer extends DisplayBase {
   }
 
   startNextLoad() {
-    const {offset, pageSize, direction} = this.state
+    const {
+      offset,
+      pageSize,
+      direction,
+      currentSnapshotInd,
+      dend,
+      dstart
+    } = this.state
     if(this.state.loading || this.endOfData) {
       return
     }
-    const newOff = offset + (direction * pageSize)
+    let newOff = dend
+    // Pull prev data in reverse
+    if(direction < 0) {
+      newOff = dstart - pageSize
+      if(newOff < 0) {
+        newOff = 0
+      }
+    }
+
+    if(newOff == 0 && offset == 0) {
+      console.log("Hit start of data")
+      this.endOfData = true
+      return
+    }
     this.setState({
       loading: true,
       offset: newOff
-    }, () => this.loadNextData())
+    }, () => this.loadNextData(direction))
   }
 
-  loadNextData() {
+  loadNextData(direction) {
     console.log("Load next page")
 
     const {offset, pageSize, fname, loading} = this.state
     console.log(`Name : ${fname} Offset: ${offset}`)
 
     this.client.getSnapshots(fname, offset, pageSize)
-    .then(this.onUpdateLoad.bind(this))
+    .then(this.onUpdateLoad.bind(this, direction))
 
   }
 
-  onUpdateLoad(data) {
-    const {pageSize, offset, currentSnapshotInd, direction} = this.state
+  onUpdateLoad(direction, data) {
+    const {
+      offset,
+      pageSize,
+      currentSnapshotInd,
+      dend,
+      dstart
+    } = this.state
 
     const dataLen = data.Lines.length
 
     console.log(`Loaded ${dataLen} items`)
 
-    // this.currentTime = 0
-
     let state = {loading: false, offset}
     if(dataLen > 0) {
       this.outOfSnaps = false
 
-      // state.offset += pageSize
       const newLen = this.snapshots.length + dataLen
+      const dif = newLen - maxSnapshots
 
       if(direction > 0) {
+        state.dend = dend + dataLen
         if(newLen > maxSnapshots){
           this.snapshots = this.snapshots.concat(data.Lines).slice(-maxSnapshots)
-          const dif = newLen - maxSnapshots
           if(dif > 0) {
             state.currentSnapshotInd = currentSnapshotInd - dif
+            state.dstart = dstart + dif
           }
         } else {
           this.snapshots = this.snapshots.concat(data.Lines)
@@ -205,11 +236,13 @@ class NBodyViewer extends DisplayBase {
       } else {
         this.snapshots = data.Lines.concat(this.snapshots).slice(0, maxSnapshots)
         state.currentSnapshotInd = currentSnapshotInd + dataLen
+        state.dstart = dstart - dataLen
+        state.dend = dend - dif
       }
 
       // If there is still more data, increase page size to prevent pausing
       if(this.state.paused) {
-        state.pageSize = Math.round(pageSize * 1.5)
+        // state.pageSize = Math.round(pageSize * 1.5)
         // this.unPause()
       }
     } else {
@@ -225,6 +258,7 @@ class NBodyViewer extends DisplayBase {
 
   toggleDirection() {
     const {direction} = this.state
+    this.endOfData = false
     this.setState({
       direction: direction * -1
     })
@@ -306,7 +340,6 @@ class NBodyViewer extends DisplayBase {
     const stepTime = nowTime - this.prevTime // in milliseconds
     this.prevTime = nowTime
 
-    const debug = false
     if(debug) {
       this.currentTime += 0.001 * direction
     } else {
@@ -421,8 +454,8 @@ class NBodyViewer extends DisplayBase {
         paused={paused}
         currentTime={this.currentTime}
         forward={direction == 1}
-        directionClick={() => this.toggleDirection()}
-        resetClick={() => this.resetCurrent()}
+        directionClick={this.toggleDirection.bind(this)}
+        resetClick={this.resetCurrent.bind(this)}
         onTimeUpdate={this.setTimeSpeed}/>
 
       <React3
