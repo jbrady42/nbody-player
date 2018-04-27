@@ -6,4 +6,4 @@ services:
       - 6262:9000
     environment:
       - PORT=9000
-      - DATA_HOST=192.168.1.154:1020
+      - DATA_HOST=data_host

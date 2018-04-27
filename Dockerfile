@@ -27,5 +27,4 @@ COPY conf/nginx.conf /etc/nginx/
 COPY conf/default.conf /etc/nginx/conf.d/default.conf
 COPY conf/start.sh /usr/bin/
 
-# CMD [ "/usr/bin/ep", "-v", "/etc/nginx/sites-available/default", "--", "/usr/sbin/nginx"]
 CMD ["/usr/bin/start.sh"]
