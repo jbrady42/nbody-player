@@ -252,7 +252,7 @@ class NBodyViewer extends DisplayBase {
     }
 
     this.setState(state, function() {
-      if(this.state.paused) {
+      if(this.state.dataPaused) {
         this.unPause()
       }
     }.bind(this))
@@ -269,6 +269,7 @@ class NBodyViewer extends DisplayBase {
   unPause() {
     this.setState({
       paused: false,
+      dataPaused: false,
     });
     this.prevTime = Date.now()
   }
@@ -352,7 +353,8 @@ class NBodyViewer extends DisplayBase {
         console.log("Out of data")
         this.outOfSnaps = true
         this.setState({
-          paused: true
+          paused: true,
+          dataPaused: true
         }, () => {
         } )
         if(!endOfData && !loading) {
